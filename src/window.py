@@ -6,7 +6,7 @@ from enemy import Enemy
 from pickup import Pickup
 from wall import Wall
 
-class Window():
+class Window:
 
     def __init__(self, master):
         '''
@@ -14,32 +14,42 @@ class Window():
         the GUI accordingly to the progression of the game, by the use of the Board
         object attribute initialized here. '''
         self._master = master
-        self._width = 1000
-        self._height = 850
-        self._images = GameImage()      # All images used for the game are stored as a GameImage() object
+        self._images = GameImage()
 
-        # All Tkinter Settings Initialized #
-        self._canvas = tk.Canvas(self._master, width = self._width, height = self._height, background="black")
-        self._canvas.grid(row=0,column=0, sticky=tk.N)
-        
-        self._score_label = tk.Label(self._master, text = '0', font = ('Arial', 20))
-        self._level_label = tk.Label(self._master, text = '0', font = ('Arial', 20))
-        self._lives_label = tk.Label(self._master, text = '0', font = ('Arial', 20))
-        
-        self._score_label.grid(row=1,column=0,sticky=tk.W)
-        self._level_label.grid(row=1,column=0,sticky=tk.N)
-        self._lives_label.grid(row=1,column=0,sticky=tk.E)
-        
-        self._master.resizable(width=False, height=False)
+        # 1) NATIVE FULLSCREEN MODE (macOS, Windows, Linux)
+        # -------------------------------------------------
+        # This makes your window truly fullscreen (no titlebar).
+        # You can exit with Esc or by toggling this attribute.
+        self._master.attributes('-fullscreen', True)
+
+        self._canvas = tk.Canvas(
+            self._master,
+            background="black"
+        )
+        self._canvas.pack(fill=tk.BOTH, expand=True)
+
+        # You can still track width/height if you need them:
+        self._width = self._master.winfo_width() or self._master.winfo_screenwidth()
+        self._height = self._master.winfo_height() or self._master.winfo_screenheight()
+
+        # Stats labels (you’ll likely want to overlay or place them differently in fullscreen):
+        self._score_label = tk.Label(self._master, text='0', font=('Arial', 20), bg='black', fg='white')
+        self._level_label = tk.Label(self._master, text='0', font=('Arial', 20), bg='black', fg='white')
+        self._lives_label = tk.Label(self._master, text='0', font=('Arial', 20), bg='black', fg='white')
+
+        # Place them in the same row—but you can adjust x/y coordinates for fullscreen:
+        self._score_label.place(relx=0.05, rely=0.97, anchor='sw')
+        self._level_label.place(relx=0.50, rely=0.97, anchor='s')
+        self._lives_label.place(relx=0.95, rely=0.97, anchor='se')
+
         self._master.title('Pacman')
 
-        # Arrow Keys Binded #
-        self._bindings_enabled( True )
+        # Bindings, game init, etc., stay the same…
+        self._bindings_enabled(True)
         self._pause = False
 
-        # Pacman Board Initialized #
         self.board = Board(self._width, self._height, self._images)
-        self.board.new_level()          # Initializes a new level for Pacman
+        self.board.new_level()
 
     # Drawing Functions #
     def _draw_board(self) -> None:
