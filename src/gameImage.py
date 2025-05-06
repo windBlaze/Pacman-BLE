@@ -1,29 +1,38 @@
+from pathlib import Path
 from PIL.ImageTk import PhotoImage
-import os
 
-class GameImage():
-
+class GameImage:
     def __init__(self):
-        ''' Initializes a game image object that holds all the of the images for the game.
-            The os library is used to get the current directory, and then iterates
-            through all of the images inside the 'images' directory. This makes all of the
-            images available from different directories. '''
-        self.start_directory = os.getcwd()
+        """
+        Initializes a game image object that holds all of the images for the game.
+        The images folder is assumed to live under the project root at 'static/images',
+        alongside your 'src' folder.
+        """
+        # Locate this file (e.g. src/balance_board.py or wherever you put this)
+        this_file = Path(__file__).resolve()
+        src_dir    = this_file.parent           # e.g. .../your_project/src
+        project_root = src_dir.parent           # e.g. .../your_project
 
-        # Ran from src directory
-        if self.start_directory.split('\\')[-1] == "src":
-            self.image_directory = f'..\\static\\images'
-        # Ran from Pacman directory
-        else:
-            self.image_directory = f'{self.start_directory}\\static\\images'
+        # static/images under the project root
+        images_dir = project_root / "static" / "images"
+        if not images_dir.is_dir():
+            raise FileNotFoundError(f"Could not find images folder at {images_dir}")
 
-        self.game_images = dict()
+        # Load all common image extensions
+        self.game_images = {}
+        for img_path in images_dir.iterdir():
+            if img_path.suffix.lower() in {".png", ".jpg", ".jpeg", ".gif"}:
+                key = img_path.stem  # filename without extension
+                # PhotoImage expects a string path
+                self.game_images[key] = PhotoImage(file=str(img_path))
 
-        for image in os.listdir( self.image_directory ):
-            self.game_images[ image[:-4] ] = PhotoImage(file= f'{self.image_directory}\\{image}')
-
-    def return_image(self, image) -> PhotoImage:
-        ''' Returns the image from the image_directory given the image argument. '''
-        return self.game_images[image]
-
-    
+    def return_image(self, name) -> PhotoImage:
+        """
+        Returns the PhotoImage for the given key (filename without extension).
+        Raises a KeyError if not found.
+        """
+        try:
+            return self.game_images[name]
+        except KeyError:
+            available = ", ".join(self.game_images.keys())
+            raise KeyError(f"No image named '{name}'. Available: {available}")
