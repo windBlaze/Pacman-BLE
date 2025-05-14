@@ -256,11 +256,8 @@ class Enemy(Character):
             then movement is called that places them in a new location. '''
         self.last_location = self.return_location()
 
-        if self.invulnerable:
-            self.movement()
-
-        else:
-            self.slowed_movement()
+        # Always use slowed movement to make enemies move slower
+        self.slowed_movement()
 
     def slowed_movement(self) -> None:
         ''' This movement is made so that it will move a board square ever other update. This will

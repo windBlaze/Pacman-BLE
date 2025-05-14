@@ -57,6 +57,8 @@ class BalanceBoard:
     async def _ble_main(self) -> None:
         print("[INFO] Scanning for BLE devices...")
         devices = await BleakScanner.discover()
+        for d in devices:
+            print(d.address.lower())
         target = next((d for d in devices if d.address.lower() == self.mac_address.lower()), None)
         if not target:
             print(f"[ERROR] Device {self.mac_address} not found.")
