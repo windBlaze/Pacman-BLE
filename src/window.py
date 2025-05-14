@@ -103,7 +103,7 @@ class Window:
             
         # Game Progress #
         else:
-            self._canvas.after(125, self.update)
+            self._canvas.after(250, self.update)
     
     def display_completed(self) -> None:
         ''' This functions is to add a proper transition between the completed

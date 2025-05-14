@@ -5,7 +5,7 @@ from pickup import Pickup
 
 class Pacman(Character):
     pacman = 9
-    ticks = 70 # adjust this to change the invulnerable time  
+    ticks = 60 # adjust this to change the invulnerable time  
     no_score = 0
     level_one = 1
     three_lives = 3
