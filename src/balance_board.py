@@ -24,6 +24,7 @@ class BalanceBoard:
         self.origin_roll: float = 0.0
         self.forward_thresh = forward_thresh
         self.release_thresh = release_thresh
+        self.calibrated = False
 
         self._connected_evt   = threading.Event()
 
@@ -85,5 +86,8 @@ class BalanceBoard:
             pitch, roll = struct.unpack('ff', data)
             self.latest_pitch = pitch
             self.latest_roll = roll
+            if not self.calibrated:
+                self.reset_origin()
+                self.calibrated = True
         except Exception as e:
             print(f"[ERROR] Failed to unpack data: {e}")
