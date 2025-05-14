@@ -25,6 +25,16 @@ class BalanceBoard:
         self.forward_thresh = forward_thresh
         self.release_thresh = release_thresh
 
+        self._connected_evt   = threading.Event()
+
+    def is_connected(self) -> bool:
+        """True once the BLE link is established."""
+        return self._connected_evt.is_set()
+
+    def wait_until_connected(self, timeout: Optional[float] = None) -> bool:
+        """Block until the board is connected (or timeout); returns True/False."""
+        return self._connected_evt.wait(timeout)
+
     def reset_origin(self) -> None:  # call this to recalibrate flat board
         self.origin_pitch = self.latest_pitch
         self.origin_roll = self.latest_roll
@@ -66,6 +76,7 @@ class BalanceBoard:
         async with BleakClient(target.address) as client:
             print(f"[INFO] Connected to {target.address}. Subscribing...")
             await client.start_notify(self.char_uuid, self._notification_handler)
+            self._connected_evt.set()
             await asyncio.Event().wait()  # keep running
 
     def _notification_handler(self, _: int, data: bytearray) -> None:
