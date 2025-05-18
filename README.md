@@ -1,6 +1,18 @@
 # Pacman
 A Python influenced-version of the well known arcade game, Pacman. The game immediately starts when the `main.pyw` file is ran. The program does not contain a Main Menu, but does include levels and acceleration of the game. Losing all the lives results in a Game Over screen, and the program is done.
 
+
+# Running on RPi 5
+
+cd Pacman-BLE/
+python3 -m venv .venv
+source .venv/bin/activate
+
+cd src
+python3 -m pip install -r requirements.txt  
+sudo python3 main.pyw # otherwise bluez doesn't work 
+
+
 # Requirements
 - Python must be installed: https://www.python.org/downloads/ - (Python 2 not supported)
 - Latest version of Pillow must be installed: https://pillow.readthedocs.io/en/stable/

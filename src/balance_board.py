@@ -74,7 +74,7 @@ class BalanceBoard:
         if not target:
             print(f"[ERROR] Device {self.mac_address} not found.")
             return
-        async with BleakClient(target.address) as client:
+        async with BleakClient(target.address, timeout=20) as client:
             print(f"[INFO] Connected to {target.address}. Subscribing...")
             await client.start_notify(self.char_uuid, self._notification_handler)
             self._connected_evt.set()
