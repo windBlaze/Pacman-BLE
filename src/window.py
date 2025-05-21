@@ -20,7 +20,15 @@ class Window:
         # -------------------------------------------------
         # This makes your window truly fullscreen (no titlebar).
         # You can exit with Esc or by toggling this attribute.
-        self._master.attributes('-fullscreen', True)
+        TARGET_W, TARGET_H = 960, 720          # pick any 4:3 or 16:9 size
+        self._master.geometry(f"{TARGET_W}x{TARGET_H}")
+
+        x = (self._master.winfo_screenwidth()  - TARGET_W) // 2
+        y = (self._master.winfo_screenheight() - TARGET_H) // 2
+        self._master.geometry(f"+{x}+{y}")
+
+        # lock the window so the user can’t drag-resize it
+        self._master.resizable(False, False)
 
         self._canvas = tk.Canvas(
             self._master,
@@ -31,6 +39,10 @@ class Window:
         # You can still track width/height if you need them:
         self._width = self._master.winfo_width() or self._master.winfo_screenwidth()
         self._height = self._master.winfo_height() or self._master.winfo_screenheight()
+
+        self._master.update_idletasks()        # forces a geometry calculation
+        self._width  = self._master.winfo_width()
+        self._height = self._master.winfo_height()
 
         # Stats labels (you’ll likely want to overlay or place them differently in fullscreen):
         self._score_label = tk.Label(self._master, text='0', font=('Arial', 20), bg='black', fg='white')
