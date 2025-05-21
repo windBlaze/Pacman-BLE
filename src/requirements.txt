@@ -1,2 +1,2 @@
-bleak==0.22.3
-Pillow==11.2.1
+bleak
+Pillow

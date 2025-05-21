@@ -2,11 +2,13 @@
 A Python influenced-version of the well known arcade game, Pacman. The game immediately starts when the `main.pyw` file is ran. The program does not contain a Main Menu, but does include levels and acceleration of the game. Losing all the lives results in a Game Over screen, and the program is done.
 
 
-# Running on RPi 5
+# Running on RPi 5 with Ubuntu
 
 cd Pacman-BLE/
 python3 -m venv .venv
 source .venv/bin/activate
+
+sudo apt install python3-tk
 
 cd src
 python3 -m pip install -r requirements.txt  
