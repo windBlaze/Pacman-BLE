@@ -195,9 +195,8 @@ def main():
     balance_board.start()
 
     print("Waiting for balance board…")
-    if not balance_board.wait_until_connected(timeout=10):      # ← pick a timeout you like
-        print("Could not connect within 10 s – aborting.")
-        return  
+    while not balance_board.wait_until_connected(timeout=10):      # ← pick a timeout you like
+        print("Could not connect within 10 s – retrying.")  
 
     # 2) Tk root
     root = tk.Tk()
