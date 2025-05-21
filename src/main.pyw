@@ -42,8 +42,8 @@ CHAR_UUID           = "2a57"
 TARGET_MAC = "08:70:02:74:C1:DC"  # Unix
 #TARGET_MAC          = "C2D3CF52-F199-E073-3987-A8935699F64D"  # macOS example
 START_HOLD_SEC      = 5.0
-VALIDATION_HOLD_SEC = 2.0
-POLL_INTERVAL_MS    = 100           # 20 Hz
+VALIDATION_HOLD_SEC = 3.0
+POLL_INTERVAL_MS    = 300           # 20 Hz
 DOT_RADIUS          = 10
 
 
@@ -82,7 +82,7 @@ def validate_user_input_visual(root, board: BalanceBoard, on_complete):
         width  = canvas.winfo_width()  or width
         height = canvas.winfo_height() or height
 
-        step = 20
+        step = 30
         if direction == "Up":
             dot_y = max(DOT_RADIUS, dot_y - step)
         elif direction == "Down":
