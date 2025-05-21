@@ -20,7 +20,7 @@ class Window:
         # -------------------------------------------------
         # This makes your window truly fullscreen (no titlebar).
         # You can exit with Esc or by toggling this attribute.
-        TARGET_W, TARGET_H = 960, 720          # pick any 4:3 or 16:9 size
+        TARGET_W, TARGET_H = 1280, 720          # pick any 4:3 or 16:9 size
         self._master.geometry(f"{TARGET_W}x{TARGET_H}")
 
         x = (self._master.winfo_screenwidth()  - TARGET_W) // 2
@@ -176,8 +176,8 @@ class Window:
                                                   image = self._images.return_image('one') )
         
         self._adjust_board()
-        self._master.after(100, three)
-        self._master.after(700, two)
+        self._master.after(1300, three)
+        self._master.after(1300, two)
         self._master.after(1300, one)
         
     # (Player) Binding Functions #
