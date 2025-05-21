@@ -6,6 +6,8 @@ from enemy import Enemy
 from pickup import Pickup
 from wall import Wall
 
+UPDATE_MS = 300
+
 class Window:
 
     def __init__(self, master):
@@ -50,6 +52,12 @@ class Window:
 
         self.board = Board(self._width, self._height, self._images)
         self.board.new_level()
+
+        self._after_id = None
+        self._schedule_update()
+
+    def _schedule_update(self):
+        self._after_id = self._master.after(UPDATE_MS, self.update)
 
     # Drawing Functions #
     def _draw_board(self) -> None:
@@ -103,7 +111,7 @@ class Window:
             
         # Game Progress #
         else:
-            self._canvas.after(400, self.update)
+            self._canvas.after(UPDATE_MS, self.update)
     
     def display_completed(self) -> None:
         ''' This functions is to add a proper transition between the completed
@@ -239,8 +247,16 @@ class Window:
                                       image = self._images.return_image('game_paused') )
             self.check_pause()
 
+        if not self.board.game_over:
+            self._schedule_update()
+
     def run(self) -> None:
         self.delay_beginning()
         self._master.after(2000, self.update) # put again here to allow mainloop() to still occur and also call gameloop
         self._master.mainloop()
+
+    def stop(self):                # ← call this from restart_game()
+        if self._after_id:
+            self._master.after_cancel(self._after_id)
+            self._after_id = None
 

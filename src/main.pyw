@@ -214,8 +214,10 @@ def main():
 
     # 3) Validate then launch Pac-Man-style window
     def start_game():
+        nonlocal pacman
         def restart_game():
             """Restart the game from the calibration phase."""
+            pacman.stop() 
             for widget in root.winfo_children():
                 widget.destroy()
             validate_user_input_visual(root, balance_board, start_game)
