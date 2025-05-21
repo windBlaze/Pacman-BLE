@@ -2,6 +2,7 @@ import time
 import tkinter as tk
 from balance_board import BalanceBoard
 from window import Window
+import threading, queue
 
 
 LANG = "FR"          # ← switch to "EN" for English UI texts
@@ -187,67 +188,95 @@ def wait_for_forward_visual(root, board: BalanceBoard, on_complete):
 
 
 # ──────────────────────────────────────────────────────────────────────────
-#  BOILERPLATE  (unchanged from your original logic)
+#  GAME LAUNCH
 # ──────────────────────────────────────────────────────────────────────────
 def main():
-    # 1) Start BLE sensor
-    balance_board = BalanceBoard(TARGET_MAC, CHAR_UUID)
+    # 1) BLE balance board (already runs its own asyncio thread)
+    balance_board = BalanceBoard(TARGET_MAC)
     balance_board.start()
-
-    print("Waiting for balance board…")
-    while not balance_board.wait_until_connected(timeout=10):      # ← pick a timeout you like
-        print("Could not connect within 10 s – retrying.") 
-        balance_board = BalanceBoard(TARGET_MAC, CHAR_UUID) 
-        balance_board.start()
 
     # 2) Tk root
     root = tk.Tk()
     root.attributes("-fullscreen", True)
     root.configure(bg="black")
 
-    # — NEW: press <space> anywhere in the window to recalibrate
-    def on_space(event=None):
-        print("[INFO] Spacebar pressed → resetting origin")
-        balance_board.reset_origin()
+    # press <space> anywhere to recalibrate
+    root.bind_all("<space>", lambda e=None: balance_board.reset_origin())
 
-    root.bind_all("<space>", on_space)
+    # ————————————————————————————————————————————
+    # 3) thread-safe sensor polling infrastructure
+    # ————————————————————————————————————————————
+    class SensorPoller(threading.Thread):
+        """
+        Polls BalanceBoard.get_direction() in the background and
+        drops (“old_dir”, “new_dir”) tuples into a queue.
+        """
+        def __init__(self, board, out_q, poll_ms):
+            super().__init__(daemon=True)
+            self.board = board
+            self.q     = out_q
+            self.poll  = poll_ms / 1000.0
+            self.prev  = None
+            self.stop  = threading.Event()
 
-    # 3) Validate then launch Pac-Man-style window
+        def run(self):
+            while not self.stop.is_set():
+                new = self.board.get_direction()
+                if new != self.prev:
+                    self.q.put((self.prev, new))
+                    self.prev = new
+                time.sleep(self.poll)
+
+    # ————————————————————————————————————————————
+    # 4) calibration screen then Pac-Man
+    # ————————————————————————————————————————————
     def start_game():
+        """
+        Builds the game window, starts the background
+        Bluetooth poller, and wires the queue into Tk.
+        """
+        # clear calibration widgets
+        for w in root.winfo_children():
+            w.destroy()
+
+        pacman  = Window(root)
+        msg_q   = queue.Queue()
+        poller  = SensorPoller(balance_board, msg_q, POLL_INTERVAL_MS)
+        poller.start()
+
         def restart_game():
-            """Restart the game from the calibration phase."""
-            for widget in root.winfo_children():
-                widget.destroy()
+            """Kill the poller, reset GUI, and re-enter calibration."""
+            poller.stop()
+            for w in root.winfo_children():
+                w.destroy()
             validate_user_input_visual(root, balance_board, start_game)
 
-        for widget in root.winfo_children():
-            widget.destroy()
+        def pump_queue():
+            """
+            Runs in the **Tk thread**, consuming events produced by the
+            SensorPoller and converting them to Tk <KeyPress>/<KeyRelease>.
+            """
+            try:
+                while True:
+                    old_dir, new_dir = msg_q.get_nowait()
+                    if old_dir:
+                        root.event_generate(f"<KeyRelease-{old_dir}>")
+                    if new_dir:
+                        root.event_generate(f"<KeyPress-{new_dir}>")
+            except queue.Empty:
+                pass
 
-        pacman = Window(root)
-
-        prev = {"dir": None}
-
-        def poll_sensor():
-            new_dir = balance_board.get_direction()
-            old_dir = prev["dir"]
-
-            if new_dir != old_dir:
-                if old_dir:
-                    root.event_generate(f"<KeyRelease-{old_dir}>")
-                if new_dir:
-                    root.event_generate(f"<KeyPress-{new_dir}>")
-                prev["dir"] = new_dir
-
-            if pacman.board.game_over:  # Check if the game is over
-                print("[INFO] Game over! Restarting...")
+            # watch for game-over
+            if pacman.board.game_over:
                 restart_game()
                 return
 
-            root.after(POLL_INTERVAL_MS, poll_sensor)
+            root.after(10, pump_queue)      # keep looping
 
-        root.after(POLL_INTERVAL_MS, poll_sensor)
-        pacman.run()
+        pump_queue()    # prime the first call
+        pacman.run()    # starts the game (internally calls mainloop)
 
+    # 5) first show the direction-validation screen
     validate_user_input_visual(root, balance_board, start_game)
     root.mainloop()
 
