@@ -77,9 +77,24 @@ class Window:
         self._lives_label['text'] = self.board.pacman.display_lives()
 
     def _adjust_board(self) -> None:
-        ''' Deletes the board and then redraws to prevent animation overlapping. '''
-        self._canvas.delete(tk.ALL)
-        self._draw_board()
+        ''' Updates only the dynamic objects on the board to prevent full canvas redraws. '''
+        # Update dynamic objects (Pacman, enemies, pickups)
+        for game_obj in self.board.game_objects:
+            if isinstance(game_obj, (Pickup, Pacman, Enemy)):
+                # Remove the old image of the object
+                if hasattr(game_obj, '_canvas_id') and game_obj._canvas_id:
+                    self._canvas.delete(game_obj._canvas_id)
+
+                # Draw the updated image of the object
+                total_height = self.board.square_height()
+                total_width = self.board.square_width()
+                game_obj._canvas_id = self._canvas.create_image(
+                    game_obj.x * total_width + (total_width / 2),
+                    game_obj.y * total_height + (total_height / 2),
+                    image=game_obj._image
+                )
+
+        # Update stats (score, level, lives)
         self._draw_stats()
 
     # Level Completion / Transitioning Functions #

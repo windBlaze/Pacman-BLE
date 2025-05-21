@@ -43,7 +43,7 @@ TARGET_MAC = "08:70:02:74:C1:DC"  # Unix
 #TARGET_MAC          = "C2D3CF52-F199-E073-3987-A8935699F64D"  # macOS example
 START_HOLD_SEC      = 5.0
 VALIDATION_HOLD_SEC = 2.0
-POLL_INTERVAL_MS    = 50           # 20 Hz
+POLL_INTERVAL_MS    = 100           # 20 Hz
 DOT_RADIUS          = 10
 
 
@@ -213,6 +213,12 @@ def main():
 
     # 3) Validate then launch Pac-Man-style window
     def start_game():
+        def restart_game():
+            """Restart the game from the calibration phase."""
+            for widget in root.winfo_children():
+                widget.destroy()
+            validate_user_input_visual(root, balance_board, start_game)
+
         for widget in root.winfo_children():
             widget.destroy()
 
@@ -230,6 +236,11 @@ def main():
                 if new_dir:
                     root.event_generate(f"<KeyPress-{new_dir}>")
                 prev["dir"] = new_dir
+
+            if pacman.board.game_over:  # Check if the game is over
+                print("[INFO] Game over! Restarting...")
+                restart_game()
+                return
 
             root.after(POLL_INTERVAL_MS, poll_sensor)
 
